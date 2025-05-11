@@ -1,22 +1,25 @@
-// server.js
-const express = require("express");
-const cors = require("cors");
-const mongoose = require("mongoose");
-require("dotenv").config();
+require('dotenv').config();
+const express = require('express');
+const cors    = require('cors');
+
+const pool = require('./db');            // <— nuestro pool de pg
+const authRoutes  = require('./routes/auth');
+const adminRoutes = require('./routes/admin');
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log("Conectado a MongoDB"))
-  .catch(err => console.error("Error al conectar a MongoDB:", err));
+// Inyectamos el pool en cada req para usarlo en las rutas
+app.use((req, _, next) => {
+  req.pool = pool;
+  next();
+});
 
-const authRoutes = require("./routes/auth");
-const adminRoutes = require("./routes/admin");
-
-app.use("/api/auth", authRoutes);
-app.use("/api/admin", adminRoutes);
+app.use('/api/auth',  authRoutes);
+app.use('/api/admin', adminRoutes);
 
 const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => console.log(`Servidor corriendo en el puerto ${PORT}`));
+app.listen(PORT, () =>
+  console.log(`🚀 API corriendo en puerto ${PORT}`)
+);
